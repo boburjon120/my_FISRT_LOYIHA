@@ -17,7 +17,7 @@ from admin import IsAdmin
 from handlers import common, download
 from monitor import ChannelMonitor
 from queue_worker import DESTINATION_KEY, QueueWorker
-from tests.conftest import ADMIN_ID, USER_ID, FakeAudio, FakePublisher, FakeYouTube, make_entry
+from tests.conftest import ADMIN_ID, USER_ID, FakeAudio, FakeInstagram, FakePublisher, FakeYouTube, make_entry
 from utils.limiter import UserLimiter
 
 
@@ -58,8 +58,8 @@ async def app(settings, db):
     worker = QueueWorker(settings, db, yt, FakeAudio(), pub, asyncio.Semaphore(1))
     monitor = ChannelMonitor(settings, db, yt, on_new_videos=worker.wake)
     dp = Dispatcher(
-        storage=MemoryStorage(), settings=settings, db=db, youtube=yt, publisher=pub, worker=worker,
-        monitor=monitor, audio=None, video=None, download_semaphore=asyncio.Semaphore(1),
+        storage=MemoryStorage(), settings=settings, db=db, youtube=yt, instagram=FakeInstagram(), publisher=pub, worker=worker,
+        monitor=monitor, audio=FakeAudio(), video=None, download_semaphore=asyncio.Semaphore(1),
         user_limiter=UserLimiter(0),
     )
     # Routers are module-level singletons: detach them from any previous dispatcher.
@@ -176,4 +176,44 @@ async def test_user_start_and_menu(app):
 
 async def test_non_youtube_link_rejected(app):
     await feed(app, message_update(USER_ID, "http://169.254.169.254/latest/meta-data"))
-    assert "YouTube video havolasi emas" in app.session.texts()[0]
+    assert "qo'llab-quvvatlamayman" in app.session.texts()[0]
+
+
+async def test_instagram_link_shows_card(app):
+    await feed(app, message_update(USER_ID, "qarang https://www.instagram.com/reel/C9abcDEF123/?igsh=xyz"))
+    texts = app.session.texts()
+    card = [t for t in texts if "Instagram" in t and "Reel C9abcDEF123" in t]
+    assert card, texts
+    send = [m for m in app.session.requests if isinstance(m, SendMessage) and m.reply_markup][-1]
+    buttons = send.reply_markup.inline_keyboard
+    assert buttons[0][0].callback_data == "dl:mp3:ig:C9abcDEF123"
+    assert buttons[0][1].callback_data == "dl:mp4:ig:C9abcDEF123"
+    assert buttons[1][0].url == "https://www.instagram.com/p/C9abcDEF123/"
+
+
+async def test_youtube_link_card_buttons(app):
+    await feed(app, message_update(USER_ID, "https://youtu.be/dQw4w9WgXcQ"))
+    from aiogram.methods import SendPhoto
+
+    send = [m for m in app.session.requests if isinstance(m, (SendMessage, SendPhoto)) and m.reply_markup][-1]
+    assert send.reply_markup.inline_keyboard[0][0].callback_data == "dl:mp3:yt:dQw4w9WgXcQ"
+    assert send.reply_markup.inline_keyboard[1][0].url == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+
+
+async def test_instagram_mp3_button_sends_audio(app):
+    from aiogram.methods import SendAudio
+
+    await feed(app, callback_update(USER_ID, "dl:mp3:ig:C9abcDEF123"))
+    audio = [m for m in app.session.requests if isinstance(m, SendAudio)]
+    assert len(audio) == 1
+    assert "Instagram'da ochish" in audio[0].caption
+    assert audio[0].reply_markup.inline_keyboard[0][0].url == "https://www.instagram.com/p/C9abcDEF123/"
+    assert (await app.db.get_stats())["instagram_mp3"] == 1
+
+
+async def test_bad_callback_rejected(app):
+    await feed(app, callback_update(USER_ID, "dl:mp3:ig:../../etc"))
+    await feed(app, callback_update(USER_ID, "dl:mp3:xx:dQw4w9WgXcQ"))
+    answers = [m for m in app.session.requests if isinstance(m, AnswerCallbackQuery)]
+    assert all("Noto'g'ri" in a.text for a in answers) and len(answers) == 2

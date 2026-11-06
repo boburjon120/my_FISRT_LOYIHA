@@ -1,6 +1,7 @@
 from keyboards.inline import admin_panel_kb, destination_pick_kb, video_actions_kb
 from keyboards.reply import (
     BTN_ABOUT,
+    BTN_INSTAGRAM,
     BTN_MP3,
     BTN_STATUS,
     BTN_VIDEO,
@@ -9,6 +10,7 @@ from keyboards.reply import (
 
 __all__ = [
     "BTN_ABOUT",
+    "BTN_INSTAGRAM",
     "BTN_MP3",
     "BTN_STATUS",
     "BTN_VIDEO",

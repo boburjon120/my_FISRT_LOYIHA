@@ -99,6 +99,7 @@ class VideoInfo:
     uploader: str | None
     upload_date: datetime | None
     view_count: int | None = None
+    platform: str = "youtube"  # "youtube" | "instagram"
 
 
 def parse_feed(xml_text: str | bytes, channel_id: str = "") -> Feed:
@@ -146,10 +147,15 @@ def classify_ytdlp_error(exc: BaseException) -> Exception:
 
 
 class YouTubeService:
+    # Overridden by InstagramService.
+    cookies_setting = "ytdlp_cookies_file"
+    cookies_runtime_name = "cookies.runtime.txt"
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._session: aiohttp.ClientSession | None = None
         self._cookies_copy: str | None = None
+        self._cookies_warned = False
 
     # ------------------------------------------------------------- lifecycle
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -244,11 +250,13 @@ class YouTubeService:
         """
         if self._cookies_copy and Path(self._cookies_copy).exists():
             return self._cookies_copy
-        source = Path(self.settings.ytdlp_cookies_file)
+        source = Path(getattr(self.settings, self.cookies_setting))
         if not source.is_file():
-            log.warning("YTDLP_COOKIES_FILE not found: %s", source)
+            if not self._cookies_warned:
+                log.warning("%s not found: %s (continuing without cookies)", self.cookies_setting.upper(), source)
+                self._cookies_warned = True
             return None
-        target = self.settings.database_path.parent / "cookies.runtime.txt"
+        target = self.settings.database_path.parent / self.cookies_runtime_name
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
@@ -273,7 +281,7 @@ class YouTubeService:
             "allow_unplayable_formats": False,
             "check_formats": False,
         }
-        if self.settings.ytdlp_cookies_file:
+        if getattr(self.settings, self.cookies_setting):
             cookies = self.writable_cookies_file()
             if cookies:
                 opts["cookiefile"] = cookies

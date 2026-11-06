@@ -103,3 +103,14 @@ def test_classify_ytdlp_errors():
     err = classify_ytdlp_error(Exception("Sign in to confirm you're not a bot"))
     assert type(err) is TransientError
     assert type(classify_ytdlp_error(Exception("Connection reset by peer"))) is TransientError
+
+
+async def test_real_ytdlp_instagram_mp4(settings, media_server, tmp_path):
+    from dataclasses import replace as dc_replace
+
+    info = dc_replace(INFO, platform="instagram", video_id="C9abcDEF123")
+    raw = raw_info(media_server) | {"extractor": "Instagram", "extractor_key": "Instagram", "id": "C9abcDEF123"}
+    service = VideoService(settings, LocalYouTube(settings), LocalYouTube(settings))
+    result = await service.create_mp4(info, raw, tmp_path / "ig", max_duration_minutes=10)
+    assert result.filename == "Local test.mp4"
+    assert (result.width, result.video_height) == (320, 240)

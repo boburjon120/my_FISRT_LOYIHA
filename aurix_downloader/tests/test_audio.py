@@ -90,7 +90,7 @@ def _info(duration=3, title="Mening qo'shig'im / remix"):
 async def test_create_mp3_pipeline(settings, tmp_path, monkeypatch):
     service = AudioService(settings, FakeYouTube())
 
-    def fake_download(raw_info, workdir):
+    def fake_download(raw_info, workdir, *args):
         src = workdir / "source.m4a"
         make_tone(src)
         return src
@@ -112,6 +112,6 @@ async def test_create_mp3_rejects_too_long(settings, tmp_path):
 async def test_create_mp3_rejects_unfittable(settings, tmp_path, monkeypatch):
     settings = replace(settings, upload_limit_mb=1)
     service = AudioService(settings, FakeYouTube())
-    monkeypatch.setattr(service, "_download_source_sync", lambda raw, wd: (wd / "source.m4a"))
+    monkeypatch.setattr(service, "_download_source_sync", lambda raw, wd, *a: (wd / "source.m4a"))
     with pytest.raises(FileTooLargeError):
         await service.create_mp3(_info(duration=3600), {}, tmp_path / "j", max_duration_minutes=120)

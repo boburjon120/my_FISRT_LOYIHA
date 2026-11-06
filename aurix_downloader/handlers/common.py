@@ -8,7 +8,7 @@ from aiogram.types import Message
 
 from config import Settings
 from database import Database
-from keyboards import BTN_ABOUT, BTN_MP3, BTN_STATUS, BTN_VIDEO, main_menu_kb
+from keyboards import BTN_ABOUT, BTN_INSTAGRAM, BTN_MP3, BTN_STATUS, BTN_VIDEO, main_menu_kb
 from monitor import ChannelMonitor
 from queue_worker import get_destination
 from utils.reports import LINE, public_status_text
@@ -21,18 +21,20 @@ WELCOME = (
     f"{LINE}\n"
     "🎵 YouTube videolarini <b>MP3</b> qilib yuklab oling\n"
     "🎬 Videolarni <b>MP4</b> formatda oling\n"
+    "📸 <b>Instagram</b> reels va postlardan video yuklang\n"
     "📡 Kanalimizga yangi treklar <b>avtomatik</b> joylanadi\n"
     f"{LINE}\n"
-    "👇 Boshlash uchun YouTube havolasini yuboring yoki menyudan tanlang."
+    "👇 Boshlash uchun YouTube yoki Instagram havolasini yuboring."
 )
 
 USER_HELP = (
     "❓ <b>Qanday foydalaniladi?</b>\n"
     f"{LINE}\n"
-    "1️⃣ YouTube'dan video havolasini nusxalang\n"
+    "1️⃣ YouTube yoki Instagram'dan video havolasini nusxalang\n"
     "2️⃣ Havolani shu yerga yuboring\n"
     "3️⃣ 🎵 MP3 yoki 🎬 MP4 tugmasini bosing\n\n"
-    "📌 Qo'llab-quvvatlanadi: youtube.com/watch, youtu.be, shorts\n"
+    "📌 YouTube: youtube.com/watch, youtu.be, shorts\n"
+    "📌 Instagram: reels, post va IGTV (instagram.com/reel/…, /p/…)\n"
     "📌 Faqat ochiq (public) videolar yuklanadi\n"
     "📌 Telegram limiti: {limit} MB"
 )
@@ -57,6 +59,7 @@ ABOUT = (
     "Zamonaviy YouTube → Telegram audio platformasi.\n\n"
     "🛰 YouTube kanalini 24/7 kuzatadi\n"
     "🎧 Yangi videolarni 192 kbps MP3 ga aylantiradi\n"
+    "📸 Instagram reels va postlarni yuklab beradi\n"
     "📢 Telegram kanalga avtomatik joylaydi\n"
     "🔒 Faqat ochiq va ruxsat berilgan kontent bilan ishlaydi\n"
     f"{LINE}\n"
@@ -94,6 +97,15 @@ async def btn_video(message: Message) -> None:
     await message.answer(
         "🎬 <b>YouTube → MP4</b>\n\nVideo havolasini yuboring, so'ng «🎬 MP4 yuklab olish» tugmasini bosing.\n"
         "Katta videolar Telegram limitiga sig'ishi uchun sifati avtomatik tanlanadi."
+    )
+
+
+@router.message(F.text == BTN_INSTAGRAM)
+async def btn_instagram(message: Message) -> None:
+    await message.answer(
+        "📸 <b>Instagram → MP4 / MP3</b>\n\nReels yoki post havolasini yuboring, so'ng formatni tanlang.\n"
+        "Masalan: <code>https://www.instagram.com/reel/XXXXXXXXXXX/</code>\n\n"
+        "📌 Faqat ochiq (public) akkauntlardagi videolar yuklanadi. Stories qo'llab-quvvatlanmaydi."
     )
 
 

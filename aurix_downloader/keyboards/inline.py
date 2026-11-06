@@ -1,14 +1,22 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def video_actions_kb(video_id: str, url: str) -> InlineKeyboardMarkup:
+PLATFORM_CODES = {"youtube": "yt", "instagram": "ig"}
+OPEN_TEXT = {
+    "youtube": "▶️ YouTube'da tinglash / ko'rish",
+    "instagram": "📸 Instagram'da ochish",
+}
+
+
+def video_actions_kb(video_id: str, url: str, platform: str = "youtube") -> InlineKeyboardMarkup:
+    code = PLATFORM_CODES[platform]
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="🎵 MP3 yuklab olish", callback_data=f"dl:mp3:{video_id}"),
-                InlineKeyboardButton(text="🎬 MP4 yuklab olish", callback_data=f"dl:mp4:{video_id}"),
+                InlineKeyboardButton(text="🎵 MP3 yuklab olish", callback_data=f"dl:mp3:{code}:{video_id}"),
+                InlineKeyboardButton(text="🎬 MP4 yuklab olish", callback_data=f"dl:mp4:{code}:{video_id}"),
             ],
-            [InlineKeyboardButton(text="▶️ YouTube'da tinglash / ko'rish", url=url)],
+            [InlineKeyboardButton(text=OPEN_TEXT[platform], url=url)],
         ]
     )
 

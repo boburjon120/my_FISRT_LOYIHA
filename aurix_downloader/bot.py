@@ -25,6 +25,7 @@ from audio_service import AudioService, ffmpeg_available
 from config import ConfigError, Settings, load_settings
 from database import Database
 from handlers import common, download
+from instagram_service import InstagramService
 from monitor import ChannelMonitor
 from queue_worker import QueueWorker
 from telegram_service import TelegramPublisher
@@ -108,8 +109,9 @@ async def run(settings: Settings) -> None:
 
     bot = create_bot(settings)
     youtube = YouTubeService(settings)
-    audio = AudioService(settings, youtube)
-    video = VideoService(settings, youtube)
+    instagram = InstagramService(settings)
+    audio = AudioService(settings, youtube, instagram)
+    video = VideoService(settings, youtube, instagram)
     publisher = TelegramPublisher(bot)
     semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
     worker = QueueWorker(settings, db, youtube, audio, publisher, semaphore)
@@ -120,6 +122,7 @@ async def run(settings: Settings) -> None:
         settings=settings,
         db=db,
         youtube=youtube,
+        instagram=instagram,
         audio=audio,
         video=video,
         publisher=publisher,
@@ -166,6 +169,7 @@ async def run(settings: Settings) -> None:
         await monitor.stop()
         await worker.stop()
         await youtube.close()
+        await instagram.close()
         await db.close()
         await bot.session.close()
 

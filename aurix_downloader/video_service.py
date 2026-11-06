@@ -20,6 +20,10 @@ from youtube_service import VideoInfo, YouTubeService, classify_ytdlp_error
 log = logging.getLogger(__name__)
 
 HEIGHTS = (720, 480, 360, 240)
+INSTAGRAM_FORMATS = (
+    "b[ext=mp4]/bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b",
+    "worst[ext=mp4]/worst",
+)
 
 
 @dataclass(frozen=True)
@@ -87,13 +91,17 @@ def estimate_size(formats: list[dict[str, Any]], height: int, duration: float | 
 
 
 class VideoService:
-    def __init__(self, settings: Settings, youtube: YouTubeService) -> None:
+    def __init__(self, settings: Settings, youtube: YouTubeService, instagram: YouTubeService | None = None) -> None:
         self.settings = settings
         self.youtube = youtube
+        self.instagram = instagram
 
-    def _download_sync(self, raw_info: dict[str, Any], workdir: Path, height: int) -> Path:
-        opts = self.youtube.base_opts() | {
-            "format": format_for_height(height),
+    def _download_sync(
+        self, raw_info: dict[str, Any], workdir: Path, height: int,
+        base_opts: dict[str, Any] | None = None, fmt: str | None = None,
+    ) -> Path:
+        opts = (base_opts if base_opts is not None else self.youtube.base_opts()) | {
+            "format": fmt or format_for_height(height),
             "merge_output_format": "mp4",
             "outtmpl": {"default": str(workdir / f"video_{height}.%(ext)s")},
             "max_filesize": self.settings.upload_limit_bytes * 2,
@@ -122,6 +130,8 @@ class VideoService:
             )
         workdir.mkdir(parents=True, exist_ok=True)
         limit = self.settings.upload_limit_bytes
+        if info.platform == "instagram":
+            return await self._create_instagram_mp4(info, raw_info, workdir, limit)
         formats = raw_info.get("formats") or []
         for height in HEIGHTS:
             estimate = estimate_size(formats, height, info.duration)
@@ -137,7 +147,29 @@ class VideoService:
                 return VideoResult(final, final.name, size, height, info.duration, w, h)
             log.info("%sp for %s is %.1f MB > limit, trying lower", height, info.video_id, size / 1e6)
             path.unlink(missing_ok=True)
-        raise FileTooLargeError(
+        raise self._too_large()
+
+    async def _create_instagram_mp4(
+        self, info: VideoInfo, raw_info: dict[str, Any], workdir: Path, limit: int
+    ) -> VideoResult:
+        """Instagram reels are portrait (1080x1920), so height filters do not fit:
+        take the best mp4, then fall back to the smallest one."""
+        service = self.instagram or self.youtube
+        for index, fmt in enumerate(INSTAGRAM_FORMATS):
+            path = await asyncio.to_thread(
+                self._download_sync, raw_info, workdir, index, service.base_opts(), fmt
+            )
+            size = path.stat().st_size
+            if size <= limit:
+                final = workdir / safe_filename(info.title, "mp4")
+                path.rename(final)
+                w, h = await probe_dimensions(final)
+                return VideoResult(final, final.name, size, h or 0, info.duration, w, h)
+            path.unlink(missing_ok=True)
+        raise self._too_large()
+
+    def _too_large(self) -> FileTooLargeError:
+        return FileTooLargeError(
             "video exceeds upload limit at every quality",
             user_message=f"Video {self.settings.upload_limit_mb} MB dan katta. "
             "MP3 variantini tanlab ko'ring.",

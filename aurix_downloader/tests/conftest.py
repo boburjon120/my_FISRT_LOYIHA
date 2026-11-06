@@ -92,6 +92,27 @@ class FakeYouTube:
     async def download_thumbnail(self, video_id, dest) -> bool:
         return False
 
+    def base_opts(self) -> dict:
+        return {}
+
+
+class FakeInstagram(FakeYouTube):
+    async def get_video_info(self, code: str):
+        self.info_calls.append(code)
+        if code in self.info_errors:
+            raise self.info_errors[code]
+        info = VideoInfo(
+            video_id=code,
+            title=f"Reel {code}",
+            url=f"https://www.instagram.com/p/{code}/",
+            duration=15,
+            thumbnail_url="",
+            uploader="test_user",
+            upload_date=utcnow(),
+            platform="instagram",
+        )
+        return info, {"id": code}
+
 
 class FakeAudio:
     def __init__(self):

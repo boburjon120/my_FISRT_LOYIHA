@@ -135,12 +135,20 @@ def fitting_bitrate(duration: float | None, limit_bytes: int, preferred: int, mi
 
 
 class AudioService:
-    def __init__(self, settings: Settings, youtube: YouTubeService) -> None:
+    def __init__(self, settings: Settings, youtube: YouTubeService, instagram: YouTubeService | None = None) -> None:
         self.settings = settings
         self.youtube = youtube
+        self.instagram = instagram
 
-    def _download_source_sync(self, raw_info: dict[str, Any], workdir: Path) -> Path:
-        opts = self.youtube.base_opts() | {
+    def service_for(self, info: VideoInfo) -> YouTubeService:
+        if info.platform == "instagram" and self.instagram is not None:
+            return self.instagram
+        return self.youtube
+
+    def _download_source_sync(
+        self, raw_info: dict[str, Any], workdir: Path, base_opts: dict[str, Any] | None = None
+    ) -> Path:
+        opts = (base_opts if base_opts is not None else self.youtube.base_opts()) | {
             "format": "bestaudio/best",
             "outtmpl": {"default": str(workdir / "source.%(ext)s")},
             "max_filesize": SOURCE_MAX_BYTES,
@@ -170,7 +178,8 @@ class AudioService:
                 user_message=f"Video juda uzun (maksimal {max_duration_minutes} daqiqa).",
             )
         workdir.mkdir(parents=True, exist_ok=True)
-        source = await asyncio.to_thread(self._download_source_sync, raw_info, workdir)
+        service = self.service_for(info)
+        source = await asyncio.to_thread(self._download_source_sync, raw_info, workdir, service.base_opts())
 
         duration = float(info.duration) if info.duration else await probe_duration(source)
         limit = self.settings.upload_limit_bytes
@@ -181,7 +190,7 @@ class AudioService:
             raise FileTooLargeError(f"audio would exceed {self.settings.upload_limit_mb} MB")
 
         cover_src = workdir / "cover_src.jpg"
-        cover = cover_src if await self.youtube.download_thumbnail(info.video_id, cover_src) else None
+        cover = cover_src if await service.download_thumbnail(info.video_id, cover_src) else None
         thumb = await make_telegram_thumbnail(cover, workdir / "thumb.jpg") if cover else None
 
         filename = safe_filename(info.title, "mp3")

@@ -127,5 +127,6 @@ async def stats_text(db: "Database") -> str:
         f"{LINE}\n"
         f"🎵 Foydalanuvchi MP3: <b>{stats.get('user_mp3', 0)}</b>\n"
         f"🎬 Foydalanuvchi MP4: <b>{stats.get('user_mp4', 0)}</b>\n"
+        f"📸 Instagram MP4 / MP3: <b>{stats.get('instagram_mp4', 0)}</b> / <b>{stats.get('instagram_mp3', 0)}</b>\n"
         f"💾 Kanalga yuborilgan hajm: <b>{format_size(stats.get('bytes_published', 0))}</b>"
     )

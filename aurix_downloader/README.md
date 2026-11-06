@@ -1,11 +1,12 @@
 # ⚡ AURIX Downloader
 
-**YouTube kanalidan Telegram kanalga avtomatik MP3 joylovchi bot.**
+**YouTube kanalidan Telegram kanalga avtomatik MP3 joylovchi bot + YouTube va Instagram yuklovchi.**
 
 AURIX Downloader siz tanlagan YouTube kanalni har 5 daqiqada tekshiradi.
 Yangi video chiqishi bilan uni MP3 (192 kbps) ga aylantiradi va Telegram kanalingizga
 playable audio sifatida joylaydi. Postda nomi, YouTube havolasi, sanasi va AURIX brendi bo'ladi.
-Shuningdek, oddiy foydalanuvchilar botga YouTube havolasini yuborib MP3 yoki MP4 yuklab olishlari mumkin.
+Shuningdek, oddiy foydalanuvchilar botga **YouTube** yoki **Instagram** (reels, post, IGTV) havolasini
+yuborib MP3 yoki MP4 yuklab olishlari mumkin.
 
 ```
 🎵 AURIX MUSIC
@@ -366,8 +367,11 @@ Faqat `ADMIN_IDS` dagi foydalanuvchilar ishlata oladi. Boshqalar `⛔` javobini 
 * **🎵 YouTube MP3** / **🎬 YouTube Video**: havola yuborish bo'yicha yo'riqnoma.
 * **📡 Kanal holati**: qaysi kanal kuzatilmoqda, nechta trek joylandi.
 * **ℹ️ Bot haqida**.
+* **📸 Instagram Video**: Instagram havolasi bo'yicha yo'riqnoma.
 * YouTube havolasini yuborsangiz, bot rasm, nom va davomiylikni ko'rsatadi. Tugmalar:
   **🎵 MP3 yuklab olish**, **🎬 MP4 yuklab olish**, **▶️ YouTube'da tinglash / ko'rish**.
+* Instagram havolasini (`instagram.com/reel/…`, `/p/…`, `/tv/…`) yuborsangiz, xuddi shunday karta chiqadi:
+  **🎵 MP3**, **🎬 MP4**, **📸 Instagram'da ochish**. Faqat **ochiq (public)** akkauntlar; stories qo'llab-quvvatlanmaydi.
 
 ---
 
@@ -415,6 +419,13 @@ hisoblab, keyinroq qayta urinadi. Muammo davom etsa:
 
    `.env` ga `YTDLP_COOKIES_FILE=/app/data/cookies.txt` yozing va `docker compose up -d` qiling.
    Shunda ham yopiq, pullik va yosh cheklovli videolar **yuklanmaydi**: bot bunga yo'l qo'ymaydi.
+
+**Instagram: `login talab qilyapti` / `Instagram vaqtincha so'rovlarni chekladi`**
+Instagram serverlardan kelgan so'rovlarni ko'pincha login so'rab bloklaydi. Yechim YouTube'dagi kabi:
+**ikkinchi** Instagram akkauntingizdan `cookies.txt` eksport qiling (Inkognito oynada instagram.com ga kiring →
+"Get cookies.txt LOCALLY" → Export) va `INSTAGRAM_COOKIES_FILE` ga ko'rsating.
+Render'da: Environment → Secret Files → `instagram_cookies.txt`. Asosiy akkauntingizni ishlatmang — Instagram
+avtomatik so'rovlar uchun akkauntni bloklashi mumkin. Yopiq akkauntlar baribir yuklanmaydi.
 
 **`Kanal topilmadi yoki bot kanalga qo'shilmagan` / `chat not found`**
 Botni kanalga admin qiling (3-qadam) va «Post Messages» huquqini yoqing. Yopiq kanal uchun `-100…` ID ishlating.

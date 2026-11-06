@@ -57,11 +57,12 @@ def build_channel_caption(title: str, url: str, published_at: datetime | str | N
     return caption
 
 
-def build_user_caption(title: str, url: str, extra: str = "") -> str:
+def build_user_caption(title: str, url: str, extra: str = "", platform: str = "youtube") -> str:
+    link_text = "Instagram'da ochish" if platform == "instagram" else "YouTube'da ochish"
     caption = (
         f"🎧 <b>{esc(truncate(title, 200))}</b>\n"
         f"{extra}"
-        f"▶️ <a href=\"{esc(url)}\">YouTube'da ochish</a>\n\n"
+        f"🔗 <a href=\"{esc(url)}\">{link_text}</a>\n\n"
         f"⚡ <i>{BRAND}</i>"
     )
     return caption[:CAPTION_LIMIT]

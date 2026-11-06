@@ -130,3 +130,53 @@ def normalize_telegram_chat(value: str) -> str | None:
         name = value.split("t.me/", 1)[1].strip("/")
         value = f"@{name}"
     return value if TELEGRAM_CHAT_RE.match(value) else None
+
+
+# ------------------------------------------------------------------ Instagram
+INSTAGRAM_HOSTS = frozenset({"instagram.com", "www.instagram.com", "m.instagram.com"})
+INSTAGRAM_CODE_RE = re.compile(r"^[A-Za-z0-9_-]{5,40}$")
+_INSTAGRAM_KINDS = frozenset({"p", "reel", "reels", "tv"})
+
+
+def is_valid_instagram_code(value: str | None) -> bool:
+    return bool(value) and bool(INSTAGRAM_CODE_RE.match(value))  # type: ignore[arg-type]
+
+
+def canonical_instagram_url(code: str) -> str:
+    if not is_valid_instagram_code(code):
+        raise ValueError("invalid instagram code")
+    return f"https://www.instagram.com/p/{code}/"
+
+
+def extract_instagram_code(url: str | None) -> str | None:
+    """Shortcode of a public Instagram post / reel / IGTV URL, else ``None``.
+
+    Stories, highlights and profiles are not supported (they need login).
+    """
+    if not url:
+        return None
+    parts = _split(url)
+    if parts is None or (parts.hostname or "").lower() not in INSTAGRAM_HOSTS:
+        return None
+    segments = [s for s in parts.path.split("/") if s]
+    # /p/CODE, /reel/CODE, /username/p/CODE, /username/reel/CODE
+    for i, seg in enumerate(segments[:-1]):
+        if seg in _INSTAGRAM_KINDS and i <= 1:
+            code = segments[i + 1]
+            return code if is_valid_instagram_code(code) else None
+    return None
+
+
+def find_media(text: str | None) -> tuple[str, str] | None:
+    """Find the first supported link: ("youtube", id) or ("instagram", code)."""
+    if not text:
+        return None
+    for token in text.split():
+        token = token.strip("<>()[]{}\"',")
+        video_id = extract_video_id(token)
+        if video_id:
+            return ("youtube", video_id)
+        code = extract_instagram_code(token)
+        if code:
+            return ("instagram", code)
+    return None

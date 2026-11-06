@@ -82,6 +82,7 @@ class Settings:
     upload_limit_mb: int = DEFAULT_UPLOAD_LIMIT_MB
     telegram_api_url: str = ""
     ytdlp_cookies_file: str = ""
+    instagram_cookies_file: str = ""
     notify_admins_on_failure: bool = True
 
     database_path: Path = field(default_factory=lambda: BASE_DIR / "data" / "aurix.db")
@@ -134,6 +135,7 @@ def load_settings(env_file: str | os.PathLike[str] | None = None) -> Settings:
         upload_limit_mb=_int("UPLOAD_LIMIT_MB", default_limit, minimum=1),
         telegram_api_url=telegram_api_url,
         ytdlp_cookies_file=os.getenv("YTDLP_COOKIES_FILE", "").strip(),
+        instagram_cookies_file=os.getenv("INSTAGRAM_COOKIES_FILE", "").strip(),
         notify_admins_on_failure=_bool("NOTIFY_ADMINS_ON_FAILURE", True),
         database_path=_path("DATABASE_PATH", BASE_DIR / "data" / "aurix.db"),
         download_dir=_path("DOWNLOAD_DIR", BASE_DIR / "downloads"),
