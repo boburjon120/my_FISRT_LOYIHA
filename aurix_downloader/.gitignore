@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+data/*
+downloads/*
+logs/*
+!data/.gitkeep
+!downloads/.gitkeep
+!logs/.gitkeep
+*.db
+*.db-*
+cookies.txt
