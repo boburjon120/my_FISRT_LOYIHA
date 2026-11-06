@@ -1,0 +1,27 @@
+services:
+  aurix:
+    build: .
+    image: aurix-downloader:latest
+    container_name: aurix-downloader
+    env_file: .env
+    environment:
+      DATABASE_PATH: /app/data/aurix.db
+      DOWNLOAD_DIR: /app/downloads
+      LOG_DIR: /app/logs
+    volumes:
+      - aurix_data:/app/data          # SQLite database (persistent)
+      - aurix_downloads:/app/downloads
+      - aurix_logs:/app/logs
+    restart: unless-stopped          # auto-start after crash or server reboot
+    init: true
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  aurix_data:
+  aurix_downloads:
+  aurix_logs:

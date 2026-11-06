@@ -1,0 +1,30 @@
+# Render Blueprint for AURIX Downloader (free Web Service + /health).
+# Secrets are NOT stored here: Render asks for them when you create the Blueprint.
+services:
+  - type: web
+    name: aurix-downloader
+    runtime: docker
+    plan: free
+    branch: claude/cool-volta-xotkkp
+    dockerfilePath: ./aurix_downloader/Dockerfile
+    dockerContext: ./aurix_downloader
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        sync: false
+      - key: YOUTUBE_CHANNEL
+        sync: false
+      # Upload cookies.txt under "Secret Files" in the Render dashboard.
+      - key: YTDLP_COOKIES_FILE
+        value: /etc/secrets/cookies.txt
+      - key: INSTAGRAM_COOKIES_FILE
+        value: /etc/secrets/instagram_cookies.txt
+      - key: MAX_CONCURRENT_DOWNLOADS
+        value: "1"
+      - key: CHECK_INTERVAL_SECONDS
+        value: "300"
