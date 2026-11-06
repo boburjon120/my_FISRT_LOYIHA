@@ -88,6 +88,7 @@ class Settings:
     download_dir: Path = field(default_factory=lambda: BASE_DIR / "downloads")
     log_dir: Path = field(default_factory=lambda: BASE_DIR / "logs")
     log_level: str = "INFO"
+    http_port: int = 0  # >0 starts the /health web server (Render sets PORT)
 
     @property
     def upload_limit_bytes(self) -> int:
@@ -138,4 +139,5 @@ def load_settings(env_file: str | os.PathLike[str] | None = None) -> Settings:
         download_dir=_path("DOWNLOAD_DIR", BASE_DIR / "downloads"),
         log_dir=_path("LOG_DIR", BASE_DIR / "logs"),
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper() or "INFO",
+        http_port=_int("PORT", 0, minimum=0),
     )

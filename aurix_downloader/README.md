@@ -33,6 +33,7 @@ Shuningdek, oddiy foydalanuvchilar botga YouTube havolasini yuborib MP3 yoki MP4
 6. [4-qadam: .env sozlash](#4-qadam-env-faylini-sozlash)
 7. [Kompyuterda ishga tushirish](#-kompyuterda-lokal-ishga-tushirish)
 8. [VPS ga joylash (Ubuntu 24.04 + Docker)](#-vps-ga-joylash-ubuntu-2404--docker)
+   · [Render.com ga joylash](#-rendercom-ga-joylash-bepul-cheklangan)
 9. [Admin buyruqlari](#-admin-buyruqlari)
 10. [Testlar](#-testlar)
 11. [Muammolar va yechimlar](#-muammolar-va-yechimlar)
@@ -304,6 +305,36 @@ docker compose exec aurix tail -n 100 /app/logs/aurix.log
 ```
 
 Ma'lumotlar Docker volume larda saqlanadi (`aurix_data`, `aurix_logs`, `aurix_downloads`) — `docker compose down` qilsangiz ham o'chmaydi.
+
+---
+
+## 🌐 Render.com ga joylash (bepul, cheklangan)
+
+> ⚠️ Render bepul tarifida **doimiy disk yo'q**: har qayta ishga tushganda baza tozalanadi.
+> Dublikat post bo'lmaydi (bot qayta yonganda mavjud videolarni "ko'rildi" deb belgilaydi),
+> lekin bot o'chiq paytda chiqqan video o'tkazib yuborilishi mumkin. Doimiy ish uchun VPS yaxshiroq.
+
+1. https://dashboard.render.com → **New +** → **Blueprint**.
+2. GitHub repozitoriyni ulang: `boburjon120/my_FISRT_LOYIHA`. Render `render.yaml` faylini o'zi topadi.
+3. So'ralgan qiymatlarni kiriting:
+   * `BOT_TOKEN` — @BotFather bergan token
+   * `ADMIN_IDS` — Telegram ID ingiz
+   * `TELEGRAM_CHANNEL_ID` — masalan `@aurix_music` (yoki keyin botda o'rnating)
+   * `YOUTUBE_CHANNEL` — masalan `https://www.youtube.com/@kanal`
+4. **Apply** ni bosing. Build 3–6 daqiqa davom etadi. Loglarda `Bot @... started` chiqishi kerak.
+5. Xizmat manzilini nusxalang (masalan `https://aurix-downloader.onrender.com`).
+   Brauzerda `.../health` ochilsa `{"status": "ok", ...}` ko'rinadi.
+
+### Botni uxlatmaslik (UptimeRobot)
+
+Render bepul xizmati 15 daqiqa so'rov kelmasa uxlaydi. Uni uyg'oq ushlash uchun:
+
+1. https://uptimerobot.com da bepul ro'yxatdan o'ting.
+2. **Add New Monitor** → turi **HTTP(s)**.
+3. URL: `https://SIZNING-XIZMAT.onrender.com/health`, interval: **5 minutes**.
+4. **Create Monitor**.
+
+`PORT` o'zgaruvchisini Render o'zi beradi. Bot uni ko'rsa `/health` sahifasini avtomatik ochadi.
 
 ---
 

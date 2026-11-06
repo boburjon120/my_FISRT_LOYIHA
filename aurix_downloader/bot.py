@@ -32,6 +32,7 @@ from utils.limiter import UserLimiter
 from utils.logging_setup import setup_logging
 from utils.middlewares import UserTrackingMiddleware
 from video_service import VideoService
+from web_server import HealthServer
 from youtube_service import YouTubeService
 
 log = logging.getLogger("aurix")
@@ -144,6 +145,11 @@ async def run(settings: Settings) -> None:
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
+    # Optional /health web server (needed on Render-like hosts that set $PORT).
+    health = HealthServer(monitor, worker, settings.http_port) if settings.http_port else None
+    if health:
+        await health.start()
+
     try:
         await bot.delete_webhook(drop_pending_updates=False)
         await dp.start_polling(
@@ -155,6 +161,8 @@ async def run(settings: Settings) -> None:
         log.critical("BOT_TOKEN noto'g'ri (Telegram: Unauthorized). .env faylini tekshiring.")
         raise SystemExit(3) from None
     finally:
+        if health:
+            await health.stop()
         await monitor.stop()
         await worker.stop()
         await youtube.close()
