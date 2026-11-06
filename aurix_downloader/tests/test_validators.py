@@ -89,3 +89,21 @@ def test_safe_filename_keeps_title():
     assert safe_filename("../../etc/passwd", "mp3") == "etc passwd.mp3"
     assert safe_filename("   ", "mp3") == "audio.mp3"
     assert len(safe_filename("x" * 500, "mp3")) <= 124
+
+
+def test_cookies_file_is_copied_to_writable_location(settings, tmp_path):
+    from dataclasses import replace
+
+    from youtube_service import YouTubeService
+
+    secret = tmp_path / "secrets" / "cookies.txt"
+    secret.parent.mkdir()
+    secret.write_text("# Netscape HTTP Cookie File\n")
+    secret.chmod(0o400)
+    yt = YouTubeService(replace(settings, ytdlp_cookies_file=str(secret)))
+    path = yt.base_opts()["cookiefile"]
+    assert path != str(secret)
+    assert open(path).read().startswith("# Netscape")
+    with open(path, "a") as fh:  # yt-dlp must be able to write it back
+        fh.write("x")
+    assert "cookiefile" not in YouTubeService(replace(settings, ytdlp_cookies_file=str(tmp_path / "nope"))).base_opts()

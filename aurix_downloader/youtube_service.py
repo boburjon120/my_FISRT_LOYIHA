@@ -10,9 +10,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import shutil
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -147,6 +149,7 @@ class YouTubeService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._session: aiohttp.ClientSession | None = None
+        self._cookies_copy: str | None = None
 
     # ------------------------------------------------------------- lifecycle
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -232,6 +235,30 @@ class YouTubeService:
         return channel_id
 
     # ----------------------------------------------------------------- yt-dlp
+    def writable_cookies_file(self) -> str | None:
+        """Return a writable copy of YTDLP_COOKIES_FILE.
+
+        yt-dlp writes cookies back when it finishes. Hosting platforms often
+        mount secret files read-only (Render: /etc/secrets), so we copy the
+        file once into the data directory and let yt-dlp use the copy.
+        """
+        if self._cookies_copy and Path(self._cookies_copy).exists():
+            return self._cookies_copy
+        source = Path(self.settings.ytdlp_cookies_file)
+        if not source.is_file():
+            log.warning("YTDLP_COOKIES_FILE not found: %s", source)
+            return None
+        target = self.settings.database_path.parent / "cookies.runtime.txt"
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+            target.chmod(0o600)
+        except OSError as exc:
+            log.warning("Cannot copy cookies file (%s); using it read-only", exc)
+            return str(source)
+        self._cookies_copy = str(target)
+        return self._cookies_copy
+
     def base_opts(self) -> dict[str, Any]:
         opts: dict[str, Any] = {
             "quiet": True,
@@ -247,7 +274,9 @@ class YouTubeService:
             "check_formats": False,
         }
         if self.settings.ytdlp_cookies_file:
-            opts["cookiefile"] = self.settings.ytdlp_cookies_file
+            cookies = self.writable_cookies_file()
+            if cookies:
+                opts["cookiefile"] = cookies
         return opts
 
     def extract_info_sync(self, video_id: str) -> dict[str, Any]:
