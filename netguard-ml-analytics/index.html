@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetGuard ML Analytics — tarmoq trafigini tasniflash va klasterlash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ======================= Ikonkalar toʻplami (inline SVG) ======================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.5l7.5 2.8v5.9c0 4.8-3.2 9-7.5 10.3-4.3-1.3-7.5-5.5-7.5-10.3V5.3z"/><path d="M8.6 12.1l2.4 2.4 4.4-4.6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13"/><path d="M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-tree" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1.2"/><rect x="3" y="16" width="6" height="5" rx="1.2"/><rect x="15" y="16" width="6" height="5" rx="1.2"/><path d="M12 8v4M6 16v-4h12v4"/></symbol>
+    <symbol id="i-cluster" viewBox="0 0 24 24"><circle cx="7" cy="8" r="3"/><circle cx="17.5" cy="7" r="2.5"/><circle cx="12.5" cy="17" r="3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-fast" viewBox="0 0 24 24"><path d="M4 6l7 6-7 6zM13 6l7 6-7 6z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.7 2.7L16 9.6"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="15" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ======================= Yon panel ======================= -->
+  <aside class="sidebar">
+    <a class="sb-brand" href="#dashboard">
+      <span class="sb-logo"><svg class="ic"><use href="#i-shield"/></svg></span>
+      <span class="sb-brand-text"><b>NetGuard</b><small>ML Analytics</small></span>
+    </a>
+
+    <nav class="sb-nav" aria-label="Boʻlimlar">
+      <div class="sb-section">Umumiy</div>
+      <a href="#dashboard" class="nav-item" data-page="dashboard">
+        <svg class="ic"><use href="#i-grid"/></svg><span class="nav-label">Dashboard</span><kbd>1</kbd>
+      </a>
+      <a href="#dataset" class="nav-item" data-page="dataset">
+        <svg class="ic"><use href="#i-db"/></svg><span class="nav-label">Maʼlumotlar bazasi</span><span class="nav-badge" id="nav-badge-dataset">20</span>
+      </a>
+      <div class="sb-section">Algoritmlar</div>
+      <a href="#knn" class="nav-item" data-page="knn">
+        <svg class="ic"><use href="#i-target"/></svg><span class="nav-label">KNN tasniflash</span><span class="nav-dot" id="nav-dot-knn"></span>
+      </a>
+      <a href="#tree" class="nav-item" data-page="tree">
+        <svg class="ic"><use href="#i-tree"/></svg><span class="nav-label">Decision Tree</span><span class="nav-dot" id="nav-dot-tree"></span>
+      </a>
+      <a href="#kmeans" class="nav-item" data-page="kmeans">
+        <svg class="ic"><use href="#i-cluster"/></svg><span class="nav-label">K-means klasterlash</span><span class="nav-badge" id="nav-badge-kmeans">0</span>
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-card">
+        <div class="sb-card-top"><svg class="ic"><use href="#i-cpu"/></svg><b>Zero-dependency</b></div>
+        <p>0 ta tashqi kutubxona · Vanilla JS, Canvas, SVG</p>
+      </div>
+      <div class="sb-save" id="sb-save"><span class="save-dot"></span><span id="sb-save-text">Holat saqlangan</span></div>
+      <div class="sb-keys"><kbd>1</kbd>–<kbd>5</kbd> boʻlimlar · <kbd>N</kbd> K-means qadami</div>
+      <button type="button" class="sb-reset" id="reset-all"><svg class="ic"><use href="#i-reset"/></svg>Barcha holatni tozalash</button>
+    </div>
+  </aside>
+
+  <!-- ======================= Asosiy qism ======================= -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumbs">
+        <span>NetGuard</span><span class="crumb-sep">/</span><span id="crumb-group">Umumiy</span><span class="crumb-sep">/</span><b id="crumb-page">Dashboard</b>
+      </div>
+      <div class="top-status" id="top-status"></div>
+    </header>
+
+    <main class="page">
+
+      <!-- ======================= 1. Dashboard ======================= -->
+      <section class="view" id="view-dashboard" data-page="dashboard">
+        <div class="view-head">
+          <div class="view-icon"><svg class="ic"><use href="#i-grid"/></svg></div>
+          <div>
+            <h2>Umumiy dashboard</h2>
+            <p>Uchta algoritmning joriy natijalari, umumiy klasterlar grafigi va maʼlumotlar jadvali.</p>
+          </div>
+        </div>
+
+        <div class="stat-row" id="dash-stats"></div>
+
+        <div class="grid-side">
+          <div class="card">
+            <div class="card-head"><div><h3>Yangi tarmoq ulanishi</h3><p class="card-sub">Barcha boʻlimlarda sinxron</p></div><span class="badge-live"><i></i>jonli</span></div>
+            <div class="point-form" data-form="dash"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Nuqtalar va klasterlar grafigi</h3>
+                <p class="card-sub">Rang — K-means klasteri, shakl — sinf (toʻla: Shubhali, halqa: Xavfsiz)</p>
+              </div>
+              <span class="chip-soft" id="dash-chart-chip"></span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-dash"></canvas></div>
+            <div class="legend" id="legend-dash"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Maʼlumotlar jadvali</h3><p class="card-sub" id="dash-table-sub"></p></div>
+            <a href="#dataset" class="btn btn-secondary btn-sm"><svg class="ic sm"><use href="#i-db"/></svg>Bazani tahrirlash</a>
+          </div>
+          <div class="table-scroll"><table id="dash-table"></table></div>
+        </div>
+      </section>
+
+      <!-- ======================= 2. Maʼlumotlar bazasi ======================= -->
+      <section class="view" id="view-dataset" data-page="dataset" hidden>
+        <div class="view-head">
+          <div class="view-icon"><svg class="ic"><use href="#i-db"/></svg></div>
+          <div>
+            <h2>Maʼlumotlar bazasi</h2>
+            <p>Yozuv qoʻshing yoki oʻchiring — min/max chegaralari, Z qiymatlar va uchala algoritm avtomatik qayta hisoblanadi.</p>
+          </div>
+        </div>
+        <div class="stat-cards" id="ds-stats"></div>
+        <div class="grid-side">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3>Yangi yozuv qoʻshish</h3><span class="chip-soft mono" id="ds-next-id"></span></div>
+              <form id="ds-add" autocomplete="off" novalidate>
+                <label class="field"><span class="field-label">Paket hajmi</span>
+                  <span class="input-wrap"><input type="number" step="any" min="0" id="ds-packet" placeholder="masalan, 500"><span class="unit">MB</span></span></label>
+                <label class="field"><span class="field-label">Ulanishlar soni</span>
+                  <span class="input-wrap"><input type="number" step="any" min="0" id="ds-conn" placeholder="masalan, 30"><span class="unit">soʻrov/s</span></span></label>
+                <div class="field"><span class="field-label">Sinf</span>
+                  <div class="segmented" id="ds-label">
+                    <button type="button" data-v="Xavfsiz" class="on">Xavfsiz</button>
+                    <button type="button" data-v="Shubhali">Shubhali</button>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><svg class="ic sm"><use href="#i-plus"/></svg>Bazaga qoʻshish</button>
+                <p class="form-error" id="ds-error" hidden></p>
+              </form>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Bazani tiklash</h3></div>
+              <p class="note" style="margin-top:0">Barcha oʻzgarishlar bekor qilinib, boshlangʻich 20 ta yozuv qaytariladi.</p>
+              <button type="button" class="btn btn-secondary btn-block" id="ds-reset"><svg class="ic sm"><use href="#i-reset"/></svg>Boshlangʻich 20 talik bazani tiklash</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Yozuvlar</h3><p class="card-sub" id="ds-table-sub"></p></div></div>
+            <div class="table-scroll"><table id="ds-table"></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================= 3. KNN ======================= -->
+      <section class="view" id="view-knn" data-page="knn" hidden>
+        <div class="view-head">
+          <div class="view-icon"><svg class="ic"><use href="#i-target"/></svg></div>
+          <div>
+            <h2>KNN (k = 3) — batafsil ishlanish yoʻli</h2>
+            <p>Normalizatsiya → barcha nuqtalargacha Evklid masofasi → saralash → 3 ta qoʻshni → ovoz berish.</p>
+          </div>
+        </div>
+        <div class="grid-side">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><div><span class="eyebrow">1-qadam</span><h3>Yangi nuqta</h3></div></div>
+              <div class="point-form" data-form="knn"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><span class="eyebrow">2-qadam</span><h3>Normalizatsiya</h3></div></div>
+              <div id="knn-norm"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Masofa vektorlari</h3><p class="card-sub">Yangi nuqtadan 3 ta eng yaqin qoʻshnigacha punktir chiziqlar va masofalar</p></div>
+              <div class="segmented compact" id="knn-zoom">
+                <button type="button" data-v="zoom" class="on">Yaqinlashtirilgan</button>
+                <button type="button" data-v="full">Toʻliq</button>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-knn"></canvas></div>
+            <div class="legend" id="legend-knn"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div><span class="eyebrow">4-qadam</span><h3>Saralangan roʻyxat</h3><p class="card-sub">Masofa boʻyicha oʻsish tartibida; eng yaqin 3 tasi ajratilgan</p></div></div>
+            <div class="table-scroll limit"><table id="knn-sorted"></table></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><span class="eyebrow">5-qadam</span><h3>Ovoz berish</h3></div></div>
+            <div id="knn-vote"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><span class="eyebrow">3-qadam</span><h3>Evklid masofalarini hisoblash</h3>
+              <p class="card-sub">d = √((Z<sub>1,yangi</sub> − Z<sub>1,i</sub>)² + (Z<sub>2,yangi</sub> − Z<sub>2,i</sub>)²) — bazadagi tartibda</p></div>
+          </div>
+          <div class="table-scroll"><table id="knn-steps"></table></div>
+        </div>
+      </section>
+
+      <!-- ======================= 4. Decision Tree ======================= -->
+      <section class="view" id="view-tree" data-page="tree" hidden>
+        <div class="view-head">
+          <div class="view-icon"><svg class="ic"><use href="#i-tree"/></svg></div>
+          <div>
+            <h2>Decision Tree (max_depth = 2) — ishlanish yoʻli</h2>
+            <p>Har bir tugunda barcha oʻrta nuqtalar tekshiriladi va eng kichik vaznli Gini bergan shart tanlanadi.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Daraxt sxemasi</h3><p class="card-sub">Koʻk qalin shoxlar — yangi nuqtaning yoʻli</p></div>
+            <div id="tree-pred"></div>
+          </div>
+          <div class="tree-svg-wrap" id="tree-svg"></div>
+          <div class="path-line" id="tree-path"></div>
+        </div>
+        <div class="grid-side">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3>Yangi nuqta</h3></div>
+              <div class="point-form" data-form="tree"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Gini formulalari</h3></div>
+              <div class="calc">
+                <div>G = 1 − Σ p<sub>c</sub>², &nbsp; p<sub>c</sub> = n<sub>c</sub> / n</div>
+                <div>G<sub>ajratish</sub> = (n<sub>L</sub>/n)·G<sub>L</sub> + (n<sub>R</sub>/n)·G<sub>R</sub></div>
+                <div>Nomzod chegara = (v<sub>i</sub> + v<sub>i+1</sub>) / 2</div>
+              </div>
+              <p class="note">Chap shox — shart bajariladi (≤), oʻng shox — bajarilmaydi (&gt;). Bargda koʻpchilik sinf beriladi.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Qaror hududlari</h3><p class="card-sub">Har bir barg Z fazosining bir toʻrtburchagini egallaydi</p></div></div>
+            <div class="chart-wrap"><canvas id="chart-tree"></canvas></div>
+            <div class="legend" id="legend-tree"></div>
+          </div>
+        </div>
+        <div id="tree-steps"></div>
+      </section>
+
+      <!-- ======================= 5. K-means ======================= -->
+      <section class="view" id="view-kmeans" data-page="kmeans" hidden>
+        <div class="view-head">
+          <div class="view-icon"><svg class="ic"><use href="#i-cluster"/></svg></div>
+          <div>
+            <h2>K-means (q = 3) — bosqichma-bosqich klasterlash</h2>
+            <p>Har bir qadam: (1) eng yaqin markazga biriktirish, (2) markazlarni yangilash, (3) J ni hisoblash.</p>
+          </div>
+        </div>
+        <div class="grid-side">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3>Boshqaruv</h3><span class="hint">maks. 100 iteratsiya</span></div>
+              <span class="field-label">Boshlangʻich markazlar (ID)</span>
+              <div class="init-selects">
+                <label><span>μ<sub>1</sub></span><select id="km-init-0"></select></label>
+                <label><span>μ<sub>2</sub></span><select id="km-init-1"></select></label>
+                <label><span>μ<sub>3</sub></span><select id="km-init-2"></select></label>
+              </div>
+              <div class="btn-col">
+                <button type="button" class="btn btn-primary" id="km-step"><svg class="ic sm"><use href="#i-next"/></svg>Keyingi qadam<kbd class="on-dark">N</kbd></button>
+                <div class="btn-row">
+                  <button type="button" class="btn btn-secondary" id="km-run"><svg class="ic sm"><use href="#i-fast"/></svg>Oxirigacha</button>
+                  <button type="button" class="btn btn-secondary" id="km-reset"><svg class="ic sm"><use href="#i-reset"/></svg>Qayta boshlash</button>
+                </div>
+              </div>
+              <div class="kpi-row three" id="km-kpis"></div>
+              <div class="status" id="km-status" hidden></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h3>J dinamikasi</h3><p class="card-sub">Har bir iteratsiyadagi xatolik qiymati</p></div></div>
+              <div class="spark-wrap"><canvas id="chart-j"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Joriy klasterlar</h3></div>
+              <div class="clusters" id="km-clusters"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Klaster nurlari</h3><p class="card-sub">Har bir nuqtadan oʻz klaster markazigacha chiziq; punktir — markazlar harakati</p></div>
+              <span class="chip-soft" id="km-chart-chip"></span>
+            </div>
+            <div class="chart-wrap tall"><canvas id="chart-km"></canvas></div>
+            <div class="legend" id="legend-km"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Iteratsiyalar tarixi (log)</h3><p class="card-sub">Har bir iteratsiyani ochib, toʻliq hisob-kitobni koʻring</p></div>
+          </div>
+          <div id="km-log"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">NetGuard ML Analytics · HTML5 (Canvas, SVG), CSS3 va Vanilla JavaScript · tashqi ML va grafik kutubxonalarisiz</footer>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<div class="tooltip" id="tooltip" hidden></div>
+
+<script src="script.js"></script>
+</body>
+</html>
